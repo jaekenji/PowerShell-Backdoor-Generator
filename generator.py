@@ -34,8 +34,8 @@ def list_2_character_2_string(object):
         command = object
     else:
         command = object.group(0)[1:-1]
-    return r"([string]::join('', ( (" + str(ord(command)) +  r") |%{$_}|%{ ([char][int] $_)})) |%{$_}| % {$_})"
-
+    return r"([string]::join('', ( (" + ','.join(str(ord(character)) for character in command) +  r") |%{$_}|%{ ([char][int] $_)})) |%{$_}| % {$_})"
+	
 # METHOD 2
 def character_2_string(object):
     if isinstance(object, str):

